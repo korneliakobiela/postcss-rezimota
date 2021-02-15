@@ -1,32 +1,24 @@
-name: CI
+name: Pull upstream
 
 on:
-  push:
-    branches:
-      - master
-    tags:
-      - v*
-  pull_request:
-    branches:
-      - master
-
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '55 * * * *'
 jobs:
-  test:
-    name: Node ${{ matrix.node }} on ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, windows-latest, macOS-latest ]
-        node: [ '14', '12' ]
-    runs-on: ${{ matrix.os }}
+  release_pull_request:
+    runs-on: ubuntu-latest
+    name: release_pull_request
     steps:
-      - uses: actions/checkout@v1
-      - name: Setup node
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
-      - run: npm install
-      - run: npm test
-      - run: npm run coverage
-      - uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+    - name: checkout
+      uses: actions/checkout@v1
+    - name: Create PR to branch
+      uses: gorillio/github-action-sync@master
+      with:
+        upstream: git@github.com:dGUIJS/postcss-rezimota.git
+        upstream_branch: master
+        branch: master
+        pr_labels: upstream
+      env:
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        GITBOT_EMAIL: comandeer@comandeer.pl
+        DRY_RUN: false
